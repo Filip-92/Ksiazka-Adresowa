@@ -13,6 +13,232 @@ struct Znajomy
     string imie, nazwisko, nr_tel, adresEmail, adresZamieszkania;
 };
 
+struct Uzytkownik
+{
+    int idUzytkownika = 0;
+    string nazwa, haslo;
+};
+
+vector <Uzytkownik> rejestracja ( vector <Uzytkownik> uzytkownicy, int iloscUzytkownikow )
+{
+    string nazwa, haslo;
+    int idUzytkownika;
+    iloscUzytkownikow = uzytkownicy.size();
+    cout << iloscUzytkownikow << endl;
+    system("pause");
+
+    Uzytkownik pojedynczyUzytkownik;
+
+    fstream plik;
+    plik.open("Uzytkownicy.txt");
+    if (plik.good())
+    {
+        plik.close();
+    }
+    else
+    {
+        plik.open("Uzytkownicy.txt", ios::out);
+        plik.close();
+    }
+
+    system("cls");
+    cout << "Podaj nazwe uzytkownika: ";
+    cin >> nazwa;
+    int i = 0;
+    while (i < iloscUzytkownikow)
+    {
+        if (uzytkownicy[i].nazwa == nazwa)
+        {
+            cout << "Taki uzytkownik istnieje. Wpisz inna nazwe uzytkownika: ";
+            cin >> nazwa;
+            i = 0;
+        }
+        else
+        {
+            i++;
+        }
+    }
+    cout << "Podaj haslo: ";
+    cin >> haslo;
+
+    idUzytkownika = iloscUzytkownikow + 1;
+
+    pojedynczyUzytkownik = { idUzytkownika, nazwa, haslo };
+    uzytkownicy.push_back ( pojedynczyUzytkownik );
+
+    plik.open ( "Uzytkownicy.txt", ios::out | ios::app );
+
+    if ( plik.good() == true )
+    {
+        plik << uzytkownicy[iloscUzytkownikow].idUzytkownika << "|";
+        plik << uzytkownicy[iloscUzytkownikow].nazwa << "|";
+        plik << uzytkownicy[iloscUzytkownikow].haslo << "|";
+        plik << endl;
+
+        plik.close();
+    }
+    else
+    {
+        cout << "Nie udalo sie otworzyc pliku i zapisac do niego danych" << endl;
+        Sleep(1000);
+    }
+
+    cout << "Konto zostalo zalozone" << endl;
+    Sleep(1000);
+
+    return uzytkownicy;
+}
+
+int logowanie ( vector <Uzytkownik> uzytkownicy, int iloscUzytkownikow )
+{
+    string nazwa, haslo;
+    iloscUzytkownikow = uzytkownicy.size();
+
+    fstream plik;
+    plik.open("Uzytkownicy.txt");
+    if (plik.good())
+    {
+        plik.close();
+    }
+    else
+    {
+        plik.open("Uzytkownicy.txt", ios::out);
+        plik.close();
+    }
+
+    cout << "Podaj nazwe uzytkownika: ";
+    cin >> nazwa;
+    int i = 0;
+    while (i < iloscUzytkownikow)
+    {
+        if (uzytkownicy[i].nazwa == nazwa)
+        {
+            for(int proby = 0; proby < 3; proby++)
+            {
+                cout << "Podaj haslo. Pozostalo prob " << 3-proby << ": ";
+                cin >> haslo;
+                if(uzytkownicy[i].haslo == haslo)
+                {
+                    cout << "Zalogowales sie." << endl;
+                    Sleep(1000);
+                    return uzytkownicy[i].idUzytkownika;
+                }
+            }
+            cout << "Podales 3 razy bledne gaslo. Poczekaj 3 sekundy przed kolejna proba" << endl;
+            Sleep(3000);
+            return 0;
+        }
+        i++;
+    }
+    cout << "Nie ma uzytkownika z takim loginem" << endl;
+    Sleep(1500);
+    return 0;
+}
+
+vector <Uzytkownik> wczytywanieUzytkownikowDoStruktury (vector <Uzytkownik>& uzytkownicy)
+{
+    string linia;
+    int nr_linii = 1;
+    fstream plik;
+
+    Uzytkownik pojedynczyUzytkownik;
+
+    plik.open ( "Uzytkownicy.txt", ios::in );
+
+    if (plik.is_open())
+    {
+        while(getline(plik,linia))
+        {
+            string uzytkownik[3];
+            int koniecStringa = linia.length();
+            int index = 0;
+            int poczatekSlowa = 0;
+            int dlugoscSlowa = 0;
+            int indexUzytkownika = 0;
+
+            for ( index = 0; index < koniecStringa; index++ )
+            {
+                if((int) linia[index] == 124)
+                {
+                    dlugoscSlowa = index - poczatekSlowa;
+                    uzytkownik [ indexUzytkownika ] = linia.substr( poczatekSlowa, dlugoscSlowa );
+                    poczatekSlowa = index + 1;
+                    indexUzytkownika++;
+                }
+            }
+            pojedynczyUzytkownik.idUzytkownika = atoi(uzytkownik[0].c_str());
+            pojedynczyUzytkownik.nazwa = uzytkownik[1];
+            pojedynczyUzytkownik.haslo = uzytkownik[2];
+
+            uzytkownicy.push_back ( pojedynczyUzytkownik );
+        }
+        plik.close();
+
+        return uzytkownicy;
+    }
+    else
+    {
+        plik.close();
+        return uzytkownicy;
+    }
+}
+
+vector <Uzytkownik> zmianaHaslaUzytkownika ( vector <Uzytkownik> uzytkownicy, int idZalogowanegoUzytkownika )
+{
+    fstream plik;
+    int indexDoEdycji;
+    string haslo;
+    cout << "Podaj nowe haslo: ";
+    cin >> haslo;
+
+    for ( int i = 0; i < uzytkownicy.size(); i++ )
+    {
+        if ( uzytkownicy[i].idUzytkownika == idZalogowanegoUzytkownika )
+        {
+            indexDoEdycji = i;
+            uzytkownicy[i].haslo = haslo;
+        }
+
+    plik.open("Uzytkownicy.txt", ios::out);
+    if ( plik.good() )
+    {
+        if ( idZalogowanegoUzytkownika > 1 )
+        {
+            for ( int i = 0; i < indexDoEdycji; i++ )
+            {
+                plik << uzytkownicy[i].idUzytkownika << "|";
+                plik << uzytkownicy[i].nazwa << "|";
+                plik << uzytkownicy[i].haslo << "|" << endl;
+            }
+        }
+        plik << uzytkownicy[indexDoEdycji].idUzytkownika << "|";
+        plik << uzytkownicy[indexDoEdycji].nazwa << "|";
+        plik << uzytkownicy[indexDoEdycji].haslo << "|" << endl;
+
+        if (  indexDoEdycji + 1 < uzytkownicy.size() )
+        {
+            for ( int i = idZalogowanegoUzytkownika; i < uzytkownicy.size(); i++ )
+            {
+                plik << uzytkownicy[i].idUzytkownika << "|";
+                plik << uzytkownicy[i].nazwa << "|";
+                plik << uzytkownicy[i].haslo << "|" << endl;
+            }
+        }
+        plik.close();
+        cout << "Haslo zostalo zmienione" << endl;
+        Sleep(1500);
+        return uzytkownicy;
+    }
+    else
+    {
+        plik.close();
+        cout << "Blad odczytu pliku!" << endl;
+        Sleep(1000);
+        return uzytkownicy;
+    }
+}
+}
+
 bool szukajZnaku ( string tekst, char szukanyZnak )
 {
     size_t znalezionaPozycja = tekst.find ( szukanyZnak );
@@ -502,30 +728,58 @@ vector <Znajomy> usuniecieZnajomegoZKsiazkiAdresowej ( vector <Znajomy> znajomi,
 int main()
 {
     vector <Znajomy> znajomi;
+    vector <Uzytkownik> uzytkownicy;
     int idZnajomego = 0;
     int iloscZnajomych = 0;
+    int iloscUzytkownikow = 0;
     int idDoEdycji;
     int idDoUsuniecia;
+    int idZalogowanegoUzytkownika = 0;
     int czyMenuJestAktywne = true;
     int czyMenuEdycjiJestAktywne = true;
 
     char wybor;
 
-    znajomi = wczytywanieZnajomychDoStruktury ( znajomi );
+    uzytkownicy = wczytywanieUzytkownikowDoStruktury ( uzytkownicy );
     iloscZnajomych = znajomi.size();
+    iloscUzytkownikow = uzytkownicy.size();
 
-    while ( 1 )
+    while ( czyMenuJestAktywne )
     {
-        if ( czyMenuJestAktywne )
+        if ( idZalogowanegoUzytkownika == 0)
         {
-            system ( "cls" );
+            system("cls");
+            cout << "1. Rejestracja" << endl;
+            cout << "2. Logowanie" << endl;
+            cout << "9. Zakoncz program" << endl;
+            cout << endl;
+            cin >> wybor;
+
+            if (wybor == '1')
+            {
+                uzytkownicy = rejestracja ( uzytkownicy, iloscUzytkownikow );
+            }
+            else if (wybor == '2')
+            {
+                idZalogowanegoUzytkownika = logowanie ( uzytkownicy, iloscUzytkownikow );
+            }
+            else if (wybor == '9')
+            {
+                exit(0);
+            }
+        }
+        else
+        {
+            system ( "cls");
+            znajomi = wczytywanieZnajomychDoStruktury ( znajomi );
             cout << "1. Dodaj dane znajomego" << endl;
             cout << "2. Wyszukaj znajomych po imieniu" << endl;
             cout << "3. Wyszukaj znajomych po nazwisku" << endl;
             cout << "4. Wyswietl wszystkich znajomych" << endl;
             cout << "5. Usun znajomego" << endl;
             cout << "6. Edytuj dane znajomego" << endl;
-            cout << "9. Zakoncz program" << endl;
+            cout << "7. Zmien haslo" << endl;
+            cout << "9. Wyloguj sie" << endl;
             cout << endl;
             cout << "Twoj wybor: ";
             cin >> wybor;
@@ -563,98 +817,103 @@ int main()
                 czyMenuJestAktywne = jestEdytowane ( znajomi, idDoEdycji );
                 czyMenuEdycjiJestAktywne = true;
             }
+            else if ( wybor == '7' )
+            {
+                system ( "cls" );
+                uzytkownicy = zmianaHaslaUzytkownika ( uzytkownicy, idZalogowanegoUzytkownika );
+            }
             else if ( wybor == '9' )
             {
                 system ( "cls" );
-                cout << "Zakonczono dzialanie programu";
+                cout << "Wylogowywanie";
                 cout << endl;
-                exit(0);
+                idZalogowanegoUzytkownika = 0;
             }
-        }
-        else
-        {
-            while( czyMenuEdycjiJestAktywne )
+            else
             {
-                int ile = 0;
-
-                for ( int i = 0; i < znajomi.size(); i++ )
+                while( czyMenuEdycjiJestAktywne )
                 {
-                    if ( znajomi[i].id == idDoEdycji )
+                    int ile = 0;
+
+                    for ( int i = 0; i < znajomi.size(); i++ )
                     {
-                        system ("cls");
-                        ile++;
-                        cout << znajomi[i].id << "|";
-                        cout << znajomi[i].imie << "|" << znajomi[i].nazwisko << "|";
-                        cout << znajomi[i].nr_tel << "|";
-                        cout << znajomi[i].adresEmail << "|";
-                        cout << znajomi[i].adresZamieszkania << "|";
-                        cout << endl;
+                        if ( znajomi[i].id == idDoEdycji )
+                        {
+                            system ("cls");
+                            ile++;
+                            cout << znajomi[i].id << "|";
+                            cout << znajomi[i].imie << "|" << znajomi[i].nazwisko << "|";
+                            cout << znajomi[i].nr_tel << "|";
+                            cout << znajomi[i].adresEmail << "|";
+                            cout << znajomi[i].adresZamieszkania << "|";
+                            cout << endl;
+                        }
                     }
-                }
-                cout << endl;
-                cout << "Wybierz dane znajomego ktore chcesz edytowac:" << endl;
-                cout << "1 - Imie" << endl;
-                cout << "2 - Nazwisko" << endl;
-                cout << "3 - Numer telefonu" << endl;
-                cout << "4 - Email" << endl;
-                cout << "5 - Adres" << endl;
-                cout << "6 - Powrot do menu glownego" << endl;
+                    cout << endl;
+                    cout << "Wybierz dane znajomego ktore chcesz edytowac:" << endl;
+                    cout << "1 - Imie" << endl;
+                    cout << "2 - Nazwisko" << endl;
+                    cout << "3 - Numer telefonu" << endl;
+                    cout << "4 - Email" << endl;
+                    cout << "5 - Adres" << endl;
+                    cout << "6 - Powrot do menu glownego" << endl;
 
-                cout << endl;
-                cout << "Twoj wybor: ";
-                cin >> wybor;
+                    cout << endl;
+                    cout << "Twoj wybor: ";
+                    cin >> wybor;
 
-                if ( wybor == '1' )
-                {
-                    system("cls");
-                    string edytujImie;
-                    cout << "Podaj nowe imie: ";
-                    cin >> edytujImie;
-                    znajomi = edycjaDanychWybranegoZnajomego ( znajomi, idDoEdycji, wybor, edytujImie );
-                }
-                else if ( wybor == '2' )
-                {
-                    system("cls");
-                    string edytujNazwisko;
-                    cout << "Podaj nowe nazwisko: ";
-                    cin >> edytujNazwisko;
-                    znajomi = edycjaDanychWybranegoZnajomego ( znajomi, idDoEdycji, wybor, edytujNazwisko );
-                }
-                else if ( wybor == '3' )
-                {
-                    system("cls");
-                    string edytujNrTel;
-                    cout << "Podaj nowy numer telefonu: ";
-                    cin.ignore();
-                    getline ( cin, edytujNrTel );
-                    znajomi = edycjaDanychWybranegoZnajomego ( znajomi, idDoEdycji, wybor, edytujNrTel );
-                }
-                else if ( wybor == '4' )
-                {
-                    system("cls");
-                    string edytujEmail;
-                    cout << "Podaj nowy adres e-mail: ";
-                    cin >> edytujEmail;
-                    znajomi = edycjaDanychWybranegoZnajomego ( znajomi, idDoEdycji, wybor, edytujEmail );
-                    break;
-                }
-                else if ( wybor == '5' )
-                {
-                    system("cls");
-                    string edytujAdresZamieszkania;
-                    cout << "Podaj nowy adres zamieszkania: ";
-                    cin.ignore();
-                    getline ( cin, edytujAdresZamieszkania );
-                    znajomi = edycjaDanychWybranegoZnajomego ( znajomi, idDoEdycji, wybor, edytujAdresZamieszkania );
-                }
-                else if ( wybor == '6' )
-                {
-                    system("cls");
-                    cout << "Wybrano powrot do menu glownego";
-                    Sleep(1000);
-                    znajomi = znajomi;
-                    czyMenuJestAktywne = true;
-                    czyMenuEdycjiJestAktywne = false;
+                    if ( wybor == '1' )
+                    {
+                        system("cls");
+                        string edytujImie;
+                        cout << "Podaj nowe imie: ";
+                        cin >> edytujImie;
+                        znajomi = edycjaDanychWybranegoZnajomego ( znajomi, idDoEdycji, wybor, edytujImie );
+                    }
+                    else if ( wybor == '2' )
+                    {
+                        system("cls");
+                        string edytujNazwisko;
+                        cout << "Podaj nowe nazwisko: ";
+                        cin >> edytujNazwisko;
+                        znajomi = edycjaDanychWybranegoZnajomego ( znajomi, idDoEdycji, wybor, edytujNazwisko );
+                    }
+                    else if ( wybor == '3' )
+                    {
+                        system("cls");
+                        string edytujNrTel;
+                        cout << "Podaj nowy numer telefonu: ";
+                        cin.ignore();
+                        getline ( cin, edytujNrTel );
+                        znajomi = edycjaDanychWybranegoZnajomego ( znajomi, idDoEdycji, wybor, edytujNrTel );
+                    }
+                    else if ( wybor == '4' )
+                    {
+                        system("cls");
+                        string edytujEmail;
+                        cout << "Podaj nowy adres e-mail: ";
+                        cin >> edytujEmail;
+                        znajomi = edycjaDanychWybranegoZnajomego ( znajomi, idDoEdycji, wybor, edytujEmail );
+                        break;
+                    }
+                    else if ( wybor == '5' )
+                    {
+                        system("cls");
+                        string edytujAdresZamieszkania;
+                        cout << "Podaj nowy adres zamieszkania: ";
+                        cin.ignore();
+                        getline ( cin, edytujAdresZamieszkania );
+                        znajomi = edycjaDanychWybranegoZnajomego ( znajomi, idDoEdycji, wybor, edytujAdresZamieszkania );
+                    }
+                    else if ( wybor == '6' )
+                    {
+                        system("cls");
+                        cout << "Wybrano powrot do menu glownego";
+                        Sleep(1000);
+                        znajomi = znajomi;
+                        czyMenuJestAktywne = true;
+                        czyMenuEdycjiJestAktywne = false;
+                    }
                 }
             }
         }
