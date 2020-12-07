@@ -9,7 +9,7 @@ using namespace std;
 
 struct Znajomy
 {
-    int id = 0;
+    int id = 0, idUzytkownika = 0;
     string imie, nazwisko, nr_tel, adresEmail, adresZamieszkania;
 };
 
@@ -250,11 +250,12 @@ bool szukajZnaku ( string tekst, char szukanyZnak )
         return true;
 }
 
-vector <Znajomy> dodanieDanych ( vector <Znajomy> znajomi )
+vector <Znajomy> dodanieDanych ( vector <Znajomy> znajomi, int idZalogowanegoUzytkownika )
 {
     Znajomy osoba;
     string imie, nazwisko, nr_tel, adresEmail, adresZamieszkania;
     int iloscZnajomych = znajomi.size();
+    int idUzytkownika = idZalogowanegoUzytkownika;
     cout << iloscZnajomych << endl;
     system ("pause");
 
@@ -316,7 +317,7 @@ vector <Znajomy> dodanieDanych ( vector <Znajomy> znajomi )
     cin.ignore();
     getline ( cin, adresZamieszkania );
 
-    osoba = {ostatnieId + 1, imie, nazwisko, nr_tel, adresEmail, adresZamieszkania };
+    osoba = {ostatnieId + 1, idUzytkownika, imie, nazwisko, nr_tel, adresEmail, adresZamieszkania };
     znajomi.push_back(osoba);
 
     plik.open ( "ksiazkaAdresowa.txt", ios::out | ios::app );
@@ -324,6 +325,7 @@ vector <Znajomy> dodanieDanych ( vector <Znajomy> znajomi )
     if ( plik.good() == true )
     {
         plik << znajomi[iloscZnajomych].id << "|";
+        plik << idZalogowanegoUzytkownika << "|";
         plik << znajomi[iloscZnajomych].imie << "|";
         plik << znajomi[iloscZnajomych].nazwisko << "|";
         plik << znajomi[iloscZnajomych].nr_tel << "|";
@@ -344,7 +346,7 @@ vector <Znajomy> dodanieDanych ( vector <Znajomy> znajomi )
     return znajomi;
 }
 
-vector <Znajomy> wczytywanieZnajomychDoStruktury (vector <Znajomy>& znajomi)
+vector <Znajomy> wczytywanieZnajomychDoStruktury ( vector <Znajomy>& znajomi, int idZalogowanegoUzytkownika )
 {
     string linia;
     int nr_linii = 1;
@@ -358,7 +360,7 @@ vector <Znajomy> wczytywanieZnajomychDoStruktury (vector <Znajomy>& znajomi)
     {
         while(getline(plik,linia))
         {
-            string znajomy[6];
+            string znajomy[7];
             int koniecStringa = linia.length();
             int index = 0;
             int poczatekSlowa = 0;
@@ -375,14 +377,18 @@ vector <Znajomy> wczytywanieZnajomychDoStruktury (vector <Znajomy>& znajomi)
                     indexZnajomego++;
                 }
             }
-            pojedynczyKontakt.id = atoi(znajomy[0].c_str());
-            pojedynczyKontakt.imie = znajomy[1];
-            pojedynczyKontakt.nazwisko = znajomy[2];
-            pojedynczyKontakt.nr_tel = znajomy[3];
-            pojedynczyKontakt.adresEmail = znajomy[4];
-            pojedynczyKontakt.adresZamieszkania = znajomy[5];
+                pojedynczyKontakt.id = atoi(znajomy[0].c_str());
+                pojedynczyKontakt.idUzytkownika = atoi(znajomy[1].c_str());
+                pojedynczyKontakt.imie = znajomy[2];
+                pojedynczyKontakt.nazwisko = znajomy[3];
+                pojedynczyKontakt.nr_tel = znajomy[4];
+                pojedynczyKontakt.adresEmail = znajomy[5];
+                pojedynczyKontakt.adresZamieszkania = znajomy[6];
 
-            znajomi.push_back ( pojedynczyKontakt );
+                if ( pojedynczyKontakt.idUzytkownika == idZalogowanegoUzytkownika )
+                {
+                znajomi.push_back ( pojedynczyKontakt );
+                }
         }
         plik.close();
 
@@ -570,6 +576,7 @@ vector <Znajomy> edycjaDanychWybranegoZnajomego ( vector <Znajomy> znajomi, int 
             for ( int i = 0; i < indexDoEdycji; i++ )
             {
                 plik << znajomi[i].id << "|";
+                plik << znajomi[i].idUzytkownika << "|";
                 plik << znajomi[i].imie << "|";
                 plik << znajomi[i].nazwisko << "|";
                 plik << znajomi[i].nr_tel << "|";
@@ -578,6 +585,7 @@ vector <Znajomy> edycjaDanychWybranegoZnajomego ( vector <Znajomy> znajomi, int 
             }
         }
         plik << znajomi[indexDoEdycji].id << "|";
+        plik << znajomi[indexDoEdycji].idUzytkownika << "|";
         plik << znajomi[indexDoEdycji].imie << "|";
         plik << znajomi[indexDoEdycji].nazwisko << "|";
         plik << znajomi[indexDoEdycji].nr_tel << "|";
@@ -589,6 +597,7 @@ vector <Znajomy> edycjaDanychWybranegoZnajomego ( vector <Znajomy> znajomi, int 
             for ( int i = idDoEdycji; i < znajomi.size(); i++ )
             {
                 plik << znajomi[i].id << "|";
+                plik << znajomi[i].idUzytkownika << "|";
                 plik << znajomi[i].imie << "|";
                 plik << znajomi[i].nazwisko << "|";
                 plik << znajomi[i].nr_tel << "|";
@@ -670,6 +679,7 @@ vector <Znajomy> usuniecieZnajomegoZKsiazkiAdresowej ( vector <Znajomy> znajomi,
                     else
                     {
                         plik << znajomi[i].id << "|";
+                        plik << znajomi[i].idUzytkownika << "|";
                         plik << znajomi[i].imie << "|";
                         plik << znajomi[i].nazwisko << "|";
                         plik << znajomi[i].nr_tel << "|";
@@ -744,7 +754,7 @@ int main()
     iloscZnajomych = znajomi.size();
     iloscUzytkownikow = uzytkownicy.size();
 
-    while ( czyMenuJestAktywne )
+    while ( 1 )
     {
         if ( idZalogowanegoUzytkownika == 0)
         {
@@ -762,6 +772,7 @@ int main()
             else if (wybor == '2')
             {
                 idZalogowanegoUzytkownika = logowanie ( uzytkownicy, iloscUzytkownikow );
+                znajomi = wczytywanieZnajomychDoStruktury ( znajomi, idZalogowanegoUzytkownika );
             }
             else if (wybor == '9')
             {
@@ -770,8 +781,9 @@ int main()
         }
         else
         {
+            if ( czyMenuJestAktywne )
+            {
             system ( "cls");
-            znajomi = wczytywanieZnajomychDoStruktury ( znajomi );
             cout << "1. Dodaj dane znajomego" << endl;
             cout << "2. Wyszukaj znajomych po imieniu" << endl;
             cout << "3. Wyszukaj znajomych po nazwisku" << endl;
@@ -787,7 +799,7 @@ int main()
             if ( wybor == '1' )
             {
                 system ( "cls" );
-                znajomi = dodanieDanych ( znajomi );
+                znajomi = dodanieDanych ( znajomi, idZalogowanegoUzytkownika );
             }
             else if ( wybor == '2' )
             {
@@ -828,6 +840,8 @@ int main()
                 cout << "Wylogowywanie";
                 cout << endl;
                 idZalogowanegoUzytkownika = 0;
+                znajomi.clear();
+            }
             }
             else
             {
